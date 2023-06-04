@@ -1,73 +1,73 @@
-import socket
-import struct
-import sys
+from scapy.all import *
+from scapy.layers.inet import ICMP, IP
+
+class TracerouteError(Exception):
+    pass
+
+def traceroute(destination):
+    """
+    Perform a traceroute to the specified destination IP address.
+
+    Parameters:
+        destination (str): The IP address or hostname of the destination.
+
+    Returns:
+        None
+
+    Raises:
+        KeyboardInterrupt: If the traceroute is interrupted by the user.
+        TracerouteError: If an error occurs during the traceroute.
+    """
+
+    ttl = 1
+    max_hops = 30  # Maximum number of hops to try
+
+    try:
+        print("Start sending an icmp_packet...")
+        while True:
+            # Create the IP packet with the current TTL
+            icmp_packet = IP(dst=destination, ttl=ttl) / ICMP()
+
+            try:
+                # Send the packet and wait for the response
+                reply = sr1(icmp_packet, verbose=0, timeout=1)
+
+                if reply is None:
+                    # No response received within the timeout, so print an error message
+                    print(f"{ttl}. * * * Request timed out.")
+
+                elif reply.type == 11 and reply.code == 0:
+                    # ICMP Time Exceeded message received, print the IP address of the router
+                    print(f"{ttl}. {reply.src}")
+
+                    if reply.src == destination:
+                        # Destination reached, so break the loop
+                        break
+
+                elif reply.type == 0:
+                    # ICMP Echo Reply message received, print the IP address of the destination
+                    print(f"{ttl}. {reply.src} Destination reached.")
+                    break
+
+                else:
+                    # Unexpected response received, print an error message
+                    print(f"{ttl}. * * * Unexpected response received.")
+
+            except Exception as e:
+                # Handle Scapy-related exceptions
+                raise TracerouteError(f"Error occurred during traceroute: {str(e)}")
+
+            ttl += 1
+
+            if ttl > max_hops:
+                # Maximum number of hops exceeded, break the loop
+                break
+
+    except KeyboardInterrupt:
+        # Traceroute interrupted by the user
+        raise KeyboardInterrupt
 
 
-def checksum(data):
-    # calculate the checksum for the ICMP packet
-    sum = 0
-    for i in range(0, len(data), 2):
-        sum += (data[i] << 8) + data[i + 1]
-    sum = (sum >> 16) + (sum & 0xffff)
-    sum += (sum >> 16)
-    return ~sum & 0xffff
-
-
-def traceroute(dest_name):
-    # perform a traceroute to the destination name
-    dest_addr = socket.gethostbyname(dest_name)  # get the destination IP address
-    icmp = socket.getprotobyname('icmp')  # get the ICMP protocol number
-    ttl = 1  # initialize the TTL value
-    max_hops = 30  # maximum number of hops
-    while True:
-        # create a raw socket for sending and receiving ICMP packets
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-        recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-        # set the TTL value of the send socket
-        send_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-        # bind the receive socket to any available port
-        recv_socket.bind(("", 0))
-        # create an ICMP echo request packet with a dummy payload
-        icmp_type = 8  # echo request type
-        icmp_code = 0  # echo request code
-        icmp_id = 0  # identifier
-        icmp_seq = ttl  # sequence number
-        icmp_checksum = 0  # checksum (initially zero)
-        payload = b"Hello World!"  # dummy payload
-        packet = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id,
-                             icmp_seq) + payload  # pack the header and payload
-        icmp_checksum = checksum(packet)  # calculate the checksum
-        packet = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id,
-                             icmp_seq) + payload  # pack the header and payload with checksum
-        # send the packet to the destination address
-        send_socket.sendto(packet, (dest_addr, 0))
-        curr_addr = None  # initialize the current address
-        try:
-            # receive a packet from any source address and port
-            data, curr_addr = recv_socket.recvfrom(512)
-            curr_addr = curr_addr[0]  # get the source IP address
-            # unpack the IP header and get the protocol number
-            ip_header = data[:20]
-            ip_protocol = ip_header[9]
-            # unpack the ICMP header and get the type and code
-            icmp_header = data[20:28]
-            icmp_type, icmp_code = struct.unpack("!BB", icmp_header[:2])
-        except socket.error:
-            pass  # ignore socket errors
-        finally:
-            # close the sockets
-            send_socket.close()
-            recv_socket.close()
-
-        if curr_addr is not None:
-            # print the hop number and source IP address
-            print("%d\t%s" % (ttl, curr_addr))
-
-        ttl += 1  # increment the TTL value
-
-        if curr_addr == dest_addr or ttl > max_hops or icmp_type == 3:
-            break  # stop if reached destination or maximum hops or received an ICMP destination unreachable message
-
-
-if __name__ == "__main__":
-    traceroute("172.217.17.46")  # call traceroute with a destination name or IP address
+# Usage example
+destination_ip = "www.google.com"
+traceroute(destination_ip)

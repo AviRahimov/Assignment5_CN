@@ -18,6 +18,7 @@ def process_udp_packet(packet_to_send):
     """
     processing_packet(UDP, packet_to_send)
 
+
 def process_icmp_packet(packet_to_send):
     """
     This function as her name says, process ICMP packets.
@@ -25,12 +26,14 @@ def process_icmp_packet(packet_to_send):
     """
     processing_packet(ICMP, packet_to_send)
 
+
 def process_igmp_packet(packet_to_send):
     """
     This function as her name says, process IGMP packets.
     Overall, this function do as the function above but for IGMP protocol
     """
     processing_packet(IGMP, packet_to_send)
+
 
 def processing_packet(protocol, packet_to_send):
     if IP in packet_to_send:
@@ -71,6 +74,7 @@ def processing_packet(protocol, packet_to_send):
                 f", timestamp: {timestamp}, total_length: {total_length}, cache_flag: {cache_flag}, steps_flag: {steps_flag},"
                 f" type_flag: {type_flag}, status_code: {status_text}, cache_control: {cache_control}, data: {payload_hex} }}\n")
 
+
 def process_packet(packet):
     """
     check the protocol type.
@@ -86,3 +90,10 @@ def process_packet(packet):
 
 
 sniff(filter="tcp", prn=process_packet)
+
+# Question: Why do you need the root privilege to run a sniffer program? Where does the program fail if it is executed without the root privilege?
+# Answer: To read raw network packets and record all network traffic on the network interface,
+# a sniffer software needs root rights. Since it needs full access to the network hardware,
+# the software wouldn't be able to access the essential low-level network interfaces without these capabilities.
+# Without root rights, the software would probably not run properly and might not be able to collect every packet on the network interface,
+# rendering it completely useless. Moreover, it can result in problems relating to access refused, authorization denied, or other issues with insufficient privileges.

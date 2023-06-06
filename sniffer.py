@@ -41,26 +41,35 @@ def processing_packet(protocol, packet_to_send):
         timestamp = packet_to_send.time
         total_length = len(packet_to_send)
 
-        if Raw in packet_to_send:
-            cache_flag = packet_to_send[Raw].load
-        else:
-            cache_flag = b''  # Set a default value or handle it according to your requirements
+        # Extracting the flags and cache control
+        flags = packet_to_send[protocol].flags
+        # Extracting the cache_control from the first TCP option if available
+        options = packet_to_send[protocol].options
+        cache_control = options[0][1] if options else 0
 
-        # Modify or replace with appropriate values for the following flags
-        steps_flag = ""
-        type_flag = ""
-        status_code = ""
-        cache_control = ""
+        cache_flag = (flags >> 12) & 1
+        steps_flag = (flags >> 11) & 1
+        type_flag = (flags >> 10) & 1
+        status_code = flags & 0x3ff
 
-        if hasattr(packet_to_send.payload, 'hexdump'):  # Check if hexdump method is available
-            payload_hex = packet_to_send.payload.hexdump()  # Use hexdump instead of hex
+        # Map the status_code to corresponding text
+        if 200 <= status_code < 300:
+            status_text = "Success"
+        elif 400 <= status_code < 500:
+            status_text = "Client Error"
+        elif 500 <= status_code < 600:
+            status_text = "Server Error"
         else:
-            payload_hex = ''  # Set a default value or handle it according to your requirements
+            status_text = "Not a response"
+
+        payload = bytes(packet_to_send)
+        payload_hex = payload.hex()
+
         with open("SnifferFile.txt", "a") as file:
             file.write(
                 f"{{ source_ip: {source_ip}, dest_ip: {destination_ip}, source_port: {source_port}, dest_port: {destination_port}"
-                f", timestamp: {timestamp}, total_length: {total_length}, cache_flag: {cache_flag.hex()}, steps_flag: {steps_flag},"
-                f" type_flag: {type_flag}, status_code: {status_code}, cache_control: {cache_control}, data: {payload_hex} }}\n")
+                f", timestamp: {timestamp}, total_length: {total_length}, cache_flag: {cache_flag}, steps_flag: {steps_flag},"
+                f" type_flag: {type_flag}, status_code: {status_text}, cache_control: {cache_control}, data: {payload_hex} }}\n")
 
 def process_packet(packet):
     """

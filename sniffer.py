@@ -3,42 +3,41 @@ from scapy.contrib.igmp import IGMP
 from scapy.layers.inet import ICMP, UDP, TCP, IP
 
 
-def process_tcp_packet(packet):
+def process_tcp_packet(packet_to_send):
     """"
     This function as her name says, process TCP packets.
     We extract some information (source_ip, destination_ip...).
     """
-    processing_packet(packet)
+    processing_packet(TCP, packet_to_send)
 
 
-def process_udp_packet(packet):
+def process_udp_packet(packet_to_send):
     """
     This function as her name says, process UDP packets.
     Overall, this function do as the function above but for UDP protocol
     """
-    processing_packet(packet)
+    processing_packet(UDP, packet_to_send)
 
-def process_icmp_packet(packet):
+def process_icmp_packet(packet_to_send):
     """
     This function as her name says, process ICMP packets.
     Overall, this function do as the function above but for ICMP protocol
     """
-    processing_packet(packet)
+    processing_packet(ICMP, packet_to_send)
 
-def process_igmp_packet(packet):
+def process_igmp_packet(packet_to_send):
     """
     This function as her name says, process IGMP packets.
     Overall, this function do as the function above but for IGMP protocol
     """
-    processing_packet(packet)
+    processing_packet(IGMP, packet_to_send)
 
-def processing_packet(packet_to_send):
-
+def processing_packet(protocol, packet_to_send):
     if IP in packet_to_send:
         source_ip = packet_to_send[IP].src
         destination_ip = packet_to_send[IP].dst
-        source_port = packet_to_send[TCP].sport
-        destination_port = packet_to_send[TCP].dport
+        source_port = packet_to_send[protocol].sport
+        destination_port = packet_to_send[protocol].dport
         timestamp = packet_to_send.time
         total_length = len(packet_to_send)
 

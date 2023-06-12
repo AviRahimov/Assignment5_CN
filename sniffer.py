@@ -1,41 +1,80 @@
+"""
+This module provides functions to process different types of network packets using the Scapy library.
+
+Requirements:
+- scapy
+- scapy.contrib.igmp
+- scapy.layers.inet
+
+Usage:
+1. Import the necessary libraries:
+   from scapy.all import *
+   from scapy.contrib.igmp import IGMP
+   from scapy.layers.inet import ICMP, UDP, TCP, IP
+
+2. Call the `sniff()` function with the desired filter and the packet processing function as parameters:
+   sniff(filter="tcp", prn=process_packet)
+
+3. Implement the packet processing functions for different protocols:
+   - process_tcp_packet(packet_to_send)
+   - process_udp_packet(packet_to_send)
+   - process_icmp_packet(packet_to_send)
+   - process_igmp_packet(packet_to_send)
+
+4. Use the `processing_packet()` function to extract and process common information from the packets.
+
+Note: The processed packet information is stored in the "SnifferFile.txt" file.
+
+"""
+
 from scapy.all import *
 from scapy.contrib.igmp import IGMP
 from scapy.layers.inet import ICMP, UDP, TCP, IP
 
 
 def process_tcp_packet(packet_to_send):
-    """"
-    This function as her name says, process TCP packets.
-    We extract some information (source_ip, destination_ip...).
+    """
+    Process TCP packets and extract relevant information.
+
+    @param packet_to_send: TCP packet to process.
     """
     processing_packet(TCP, packet_to_send)
 
 
 def process_udp_packet(packet_to_send):
     """
-    This function as her name says, process UDP packets.
-    Overall, this function do as the function above but for UDP protocol
+    Process UDP packets and extract relevant information.
+
+    @param packet_to_send: UDP packet to process.
     """
     processing_packet(UDP, packet_to_send)
 
 
 def process_icmp_packet(packet_to_send):
     """
-    This function as her name says, process ICMP packets.
-    Overall, this function do as the function above but for ICMP protocol
+    Process ICMP packets and extract relevant information.
+
+    @param packet_to_send: ICMP packet to process.
     """
     processing_packet(ICMP, packet_to_send)
 
 
 def process_igmp_packet(packet_to_send):
     """
-    This function as her name says, process IGMP packets.
-    Overall, this function do as the function above but for IGMP protocol
+    Process IGMP packets and extract relevant information.
+
+    @param packet_to_send: IGMP packet to process.
     """
     processing_packet(IGMP, packet_to_send)
 
 
 def processing_packet(protocol, packet_to_send):
+    """
+    Extract and process common information from the packet.
+
+    @param protocol: Protocol of the packet.
+    @param packet_to_send: Packet to process.
+    """
     if IP in packet_to_send:
         source_ip = packet_to_send[IP].src
         destination_ip = packet_to_send[IP].dst
@@ -77,7 +116,9 @@ def processing_packet(protocol, packet_to_send):
 
 def process_packet(packet):
     """
-    check the protocol type.
+    Process the packet based on its protocol.
+
+    @param packet: Packet to process.
     """
     if TCP in packet:
         process_tcp_packet(packet)
@@ -89,14 +130,5 @@ def process_packet(packet):
         process_igmp_packet(packet)
 
 
+# Sniff network packets and process them using the specified filter and packet processing function
 sniff(filter="tcp", prn=process_packet)
-
-"""
-Question: Why do you need the root privilege to run a sniffer program? Where does the program fail if it is executed without the root privilege?
-
-Answer: To read raw network packets and record all network traffic on the network interface,
-a sniffer software needs root rights. Since it needs full access to the network hardware,
-the software wouldn't be able to access the essential low-level network interfaces without these capabilities.
-Without root rights, the software would probably not run properly and might not be able to collect every packet on the network interface,
-rendering it completely useless. Moreover, it can result in problems relating to access refused, authorization denied, or other issues with insufficient privileges.
-"""

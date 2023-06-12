@@ -1,35 +1,65 @@
+"""
+This script demonstrates the sending of spoofed packets using Scapy for ICMP, UDP, and TCP protocols.
+
+Requirements:
+- Scapy library must be installed (pip install scapy)
+
+Usage:
+1. Modify the 'src_ip' and 'dest_ip' variables to specify the source and destination IP addresses.
+2. Run the script to send spoofed packets.
+
+"""
+
 from scapy.all import *
 from scapy.layers.inet import IP, ICMP, UDP, TCP
 
 
 def send_packet(packet):
-    # Send the packet and receive the response
-    response = sr1(packet, timeout=2, verbose=False)  # Timeout set to 2 seconds
-    # Print the response summary
-    if response:
-        print(response.summary())
-    else:
-        print("No response")
-    # send(packet)
+    """
+    Send the specified packet.
+
+    @param packet: The packet to send.
+    @type packet: scapy.packet.Packet
+    """
+    send(packet)
+
 
 def spoof_icmp(src_ip, dest_ip):
-    # Create an ICMP packet with default values
+    """
+    Spoof an ICMP packet by creating an ICMP packet with default values and sending it.
+
+    @param src_ip: The source IP address.
+    @type src_ip: str
+    @param dest_ip: The destination IP address.
+    @type dest_ip: str
+    """
     icmp_packet = IP(src=src_ip, dst=dest_ip) / ICMP()
-    # Send the packet and print the result
     send_packet(icmp_packet)
 
 
 def spoof_udp(src_ip, dest_ip):
-    # Create a UDP packet with custom source port and destination port
+    """
+    Spoof a UDP packet by creating a UDP packet with custom source and destination ports and sending it.
+
+    @param src_ip: The source IP address.
+    @type src_ip: str
+    @param dest_ip: The destination IP address.
+    @type dest_ip: str
+    """
     udp_packet = IP(src=src_ip, dst=dest_ip) / UDP(sport=12345, dport=9090)
-    # Send the packet and print the result
     send_packet(udp_packet)
 
 
 def spoof_tcp(src_ip, dest_ip):
-    # Create a TCP packet with custom source port, destination port
+    """
+    Spoof a TCP packet by creating a TCP packet with custom source and destination ports and sending it.
+
+    @param src_ip: The source IP address.
+    @type src_ip: str
+    @param dest_ip: The destination IP address.
+    @type dest_ip: str
+    """
     tcp_packet = IP(src=src_ip, dst=dest_ip) / TCP(sport=1234, dport=5678)
-    # Send the packet and print the result
     send_packet(tcp_packet)
 
 
@@ -45,3 +75,4 @@ spoof_udp(src_ip, dest_ip)
 
 # Spoof TCP packet
 spoof_tcp(src_ip, dest_ip)
+
